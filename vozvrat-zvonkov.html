@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Возврат звонков</title>
+<style>
+:root{
+  --blue:#1976e8;--blue-soft:#eaf3ff;--text:#17233b;--muted:#71809a;
+  --line:#e4eaf2;--green:#13a66a;--green-soft:#eafaf3;--red:#ef5350;--red-soft:#fff0f0;
+  --orange:#f59e0b;--bg:#f7f9fc;--white:#fff;
+}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:var(--bg)}
+button{font:inherit;cursor:pointer}
+.app{min-height:100vh;display:flex}
+.sidebar{width:224px;background:#fff;border-right:1px solid var(--line);padding:22px 15px;display:flex;flex-direction:column}
+.logo{display:flex;align-items:center;gap:12px;font-size:21px;font-weight:800;line-height:1.05;margin:0 12px 34px}
+.logo-icon{width:42px;height:42px;border-radius:13px;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:23px}
+.nav{display:grid;gap:7px}.nav button{border:0;background:transparent;color:#52617a;padding:13px 14px;border-radius:11px;text-align:left;font-weight:650}
+.nav button.active{background:var(--blue-soft);color:var(--blue)}
+.system{margin-top:auto;border:1px solid var(--line);border-radius:12px;padding:13px;font-size:12px;color:var(--muted)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#18b875;margin-right:8px}
+.main{flex:1;min-width:0;padding:34px 28px 80px;max-width:1280px;margin:auto}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+h1{font-size:32px;margin:0 0 7px}.subtitle{color:var(--muted);margin:0}
+.account{display:flex;align-items:center;gap:12px}.bell{position:relative;border:0;background:transparent;font-size:24px}.badge{position:absolute;right:-2px;top:-5px;background:var(--red);color:white;border-radius:20px;font-size:10px;padding:2px 5px}
+.avatar{width:40px;height:40px;border-radius:50%;background:#64748b;color:white;display:grid;place-items:center;font-weight:700}
+.today-title{font-size:20px;margin:0 0 12px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:30px}
+.stat{border-radius:15px;padding:19px 22px;display:flex;align-items:center;gap:16px}
+.stat.red{background:var(--red-soft)} .stat.green{background:var(--green-soft)}
+.stat-icon{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:white;font-size:23px}
+.red .stat-icon{background:var(--red)} .green .stat-icon{background:var(--green)}
+.stat-number{font-size:30px;font-weight:800}.stat-label{color:#50617a}.trend{margin-left:auto;font-weight:700;color:var(--green)}.red .trend{color:var(--red)}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.section-title{font-size:22px;margin:0}.section-title:before{content:"";display:inline-block;width:11px;height:11px;border-radius:50%;background:var(--red);margin-right:11px}
+.sort{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 13px;color:#52617a}
+.cards{display:grid;gap:14px}
+.card{background:#fff;border:1px solid var(--line);border-left:4px solid var(--line);border-radius:14px;padding:18px 20px}
+.card.attention{border-left-color:#ff7d7d}.card.done{border-left-color:#49c995}
+.card-head{display:flex;align-items:center;gap:14px}.person{width:50px;height:50px;border-radius:50%;background:#e7f1ff;display:grid;place-items:center;color:#4c89c9;font-size:22px}
+.phone{font-size:20px;font-weight:750}.time{font-size:14px;color:var(--muted);margin-top:4px}.status{margin-left:auto;padding:7px 12px;border-radius:999px;font-size:13px;font-weight:700;background:var(--red-soft);color:var(--red)}.status.green{background:var(--green-soft);color:#0d8c59}
+.timeline{margin:15px 0 12px 64px;border-left:2px solid #e9eef5;padding-left:18px;display:grid;gap:12px}.event{position:relative}.event:before{content:"";position:absolute;left:-26px;top:3px;width:15px;height:15px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px #eafaf3}.event.wait:before{background:var(--orange);box-shadow:0 0 0 4px #fff6df}.event-title{font-weight:650}.event-sub{font-size:13px;color:var(--muted);margin-top:3px}
+.actions{display:flex;gap:12px;margin-left:64px}.actions button{flex:1;border-radius:10px;padding:12px 16px;border:1px solid #d7e0ed;background:#fff;color:#5c6b83;font-weight:750}.actions .call{background:var(--green);border-color:var(--green);color:#fff}.actions button:hover{filter:brightness(.97)}
+.footer{display:none}
+.toast{position:fixed;right:20px;bottom:20px;background:#17233b;color:#fff;padding:12px 16px;border-radius:10px;box-shadow:0 8px 30px #0002;display:none}
+@media(max-width:800px){
+  .sidebar{display:none}.main{padding:22px 16px 86px}.top{align-items:flex-start}.top h1{font-size:25px}.subtitle{font-size:14px}.account .name{display:none}
+  .stats{gap:10px}.stat{padding:14px}.stat-number{font-size:25px}.stat-icon{width:42px;height:42px}.trend{display:none}
+  .section-head{gap:10px}.section-title{font-size:19px}.sort{font-size:12px}
+  .card{padding:16px}.phone{font-size:17px}.status{font-size:11px;padding:6px 9px}.timeline,.actions{margin-left:0}.timeline{margin-top:16px}.actions{flex-direction:column}
+  .footer{position:fixed;display:grid;grid-template-columns:repeat(4,1fr);bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);z-index:5}.footer button{border:0;background:#fff;padding:10px 4px 9px;color:#64748b;font-size:11px;font-weight:700}.footer button.active{color:var(--blue)}.footer .ico{font-size:19px;display:block;margin-bottom:2px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo"><div class="logo-icon">↗</div><span>Возврат<br>звонков</span></div>
+    <nav class="nav">
+      <button class="active">⌂ &nbsp; Главная</button>
+      <button onclick="toast('Раздел «Звонки» — следующий этап')">☎ &nbsp; Звонки</button>
+      <button onclick="toast('Раздел «Заявки» — следующий этап')">▣ &nbsp; Заявки</button>
+      <button onclick="window.location.href='/demo'">⚙ &nbsp; Ещё</button>
+    </nav>
+    <div class="system"><span class="dot"></span><b>Система работает</b><br><span style="margin-left:17px">Все функции доступны</span></div>
+  </aside>
+
+  <main class="main">
+    <header class="top">
+      <div><h1>Добрый день, Алексей 👋</h1><p class="subtitle">Здесь вы видите пропущенные звонки и можете быстро на них отреагировать.</p></div>
+      <div class="account"><button class="bell" onclick="toast('У вас 3 новых уведомления')">🔔<span class="badge">3</span></button><div class="avatar">А</div><b class="name">Алексей⌄</b></div>
+    </header>
+
+    <h2 class="today-title">Сегодня</h2>
+    <section class="stats">
+      <div class="stat red"><div class="stat-icon">☎</div><div><div class="stat-number" id="missed">4</div><div class="stat-label">Пропущено</div></div><div class="trend">↑ 2</div></div>
+      <div class="stat green"><div class="stat-icon">✓</div><div><div class="stat-number" id="done">18</div><div class="stat-label">Обработано</div></div><div class="trend">↑ 5</div></div>
+    </section>
+
+    <div class="section-head"><h2 class="section-title">Требуют внимания</h2><button class="sort">Сначала новые⌃</button></div>
+
+    <section class="cards">
+      <article class="card attention" id="card1">
+        <div class="card-head"><div class="person">👤</div><div><div class="phone">+380 67 123 45 67</div><div class="time">Сегодня, 14:32</div></div><span class="status">Пропущен</span></div>
+        <div class="timeline">
+          <div class="event"><div class="event-title">✓ &nbsp;Сообщение отправлено</div><div class="event-sub">14:33</div></div>
+          <div class="event wait"><div class="event-title">◷ &nbsp;Ждёт вашего ответа</div><div class="event-sub">Клиент ожидает, что вы свяжетесь</div></div>
+        </div>
+        <div class="actions"><button class="call" onclick="toast('Запускаем звонок на +380 67 123 45 67')">☎ &nbsp;Перезвонить</button><button onclick="completeCard('card1')">✓ &nbsp;Готово</button></div>
+      </article>
+
+      <article class="card done">
+        <div class="card-head"><div class="person">👤</div><div><div class="phone">+380 50 987 65 43</div><div class="time">Сегодня, 14:18</div></div><span class="status green">Клиент перезвонил сам</span></div>
+        <div class="timeline"><div class="event"><div class="event-title">☎ &nbsp;Клиент перезвонил сам</div><div class="event-sub">14:27 · Разговор состоялся (2 мин)</div></div></div>
+        <div class="actions"><button onclick="toast('Открываем карточку звонка')">◉ &nbsp;Открыть</button></div>
+      </article>
+
+      <article class="card attention">
+        <div class="card-head"><div class="person">👤</div><div><div class="phone">+380 95 555 11 22</div><div class="time">Сегодня, 13:45</div></div><span class="status" style="background:#eef3f9;color:#52617a">Сообщение отправлено</span></div>
+        <div class="timeline"><div class="event"><div class="event-title">✓ &nbsp;Сообщение отправлено</div><div class="event-sub">13:46</div></div><div class="event wait"><div class="event-title">◷ &nbsp;Ожидает ответа</div><div class="event-sub">Клиент не ответил на сообщение</div></div></div>
+        <div class="actions"><button class="call" onclick="toast('Запускаем звонок на +380 95 555 11 22')">☎ &nbsp;Перезвонить</button><button onclick="toast('Звонок отмечен как готовый')">✓ &nbsp;Готово</button></div>
+      </article>
+
+      <article class="card done">
+        <div class="card-head"><div class="person">👤</div><div><div class="phone">+380 98 444 77 88</div><div class="time">Сегодня, 12:20</div></div><span class="status green">Клиент ответил</span></div>
+        <div class="timeline"><div class="event"><div class="event-title">☎ &nbsp;Клиент ответил</div><div class="event-sub">12:23 · Разговор состоялся (5 мин)</div></div></div>
+        <div class="actions"><button onclick="toast('Открываем карточку звонка')">◉ &nbsp;Открыть</button></div>
+      </article>
+    </section>
+  </main>
+</div>
+
+<nav class="footer">
+  <button class="active"><span class="ico">⌂</span>Главная</button>
+  <button onclick="toast('Раздел «Звонки» — следующий этап')"><span class="ico">☎</span>Звонки</button>
+  <button onclick="toast('Раздел «Заявки» — следующий этап')"><span class="ico">▣</span>Заявки</button>
+  <button onclick="window.location.href='/demo'"><span class="ico">•••</span>Ещё</button>
+</nav>
+<div class="toast" id="toast"></div>
+<script>
+let timer;
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.style.display='block';clearTimeout(timer);timer=setTimeout(()=>el.style.display='none',2400)}
+function completeCard(id){const c=document.getElementById(id);c.classList.remove('attention');c.classList.add('done');c.querySelector('.status').textContent='Обработан';c.querySelector('.status').classList.add('green');document.getElementById('missed').textContent='3';document.getElementById('done').textContent='19';toast('Звонок отмечен как обработанный')}
+</script>
+</body>
+</html>

@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Возврат звонков — Настройка авто-ответа</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f4f8fd;
+      font-family: Arial, system-ui, sans-serif;
+      color: #17233b;
+      min-height: 100vh;
+    }
+    .page {
+      max-width: 640px;
+      margin: 28px auto;
+      padding: 32px 30px 40px;
+      background: white;
+      border-radius: 22px;
+      box-shadow: 0 15px 50px #23466b18;
+    }
+    .logo {
+      font-size: 22px;
+      font-weight: 800;
+      color: #123d78;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 26px;
+    }
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: #1976e8;
+      color: white;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+    }
+    .steps {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      padding: 0 2px;
+    }
+    .step {
+      text-align: center;
+      color: #71809a;
+      font-size: 12px;
+      flex: 1;
+    }
+    .step b {
+      display: block;
+      margin: 0 auto 6px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      line-height: 32px;
+      background: #dce7f5;
+      color: #61718a;
+      font-size: 14px;
+    }
+    .step.done b { background: #13a66a; color: white; }
+    .step.active { color: #1976e8; font-weight: 700; }
+    .step.active b { background: #1976e8; color: white; }
+
+    h1 {
+      font-size: 26px;
+      margin: 0 0 8px;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: #657792;
+      font-size: 15px;
+      margin: 0 0 28px;
+      line-height: 1.4;
+    }
+
+    .block {
+      margin-bottom: 26px;
+    }
+    .label {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .hint {
+      font-size: 13px;
+      color: #71809a;
+      margin-top: 6px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 110px;
+      border: 2px solid #d3e2f4;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 15px;
+      line-height: 1.45;
+      resize: vertical;
+      outline: none;
+      font-family: inherit;
+    }
+    textarea:focus {
+      border-color: #1976e8;
+      box-shadow: 0 0 0 3px #1976e820;
+    }
+
+    .channels {
+      display: grid;
+      gap: 10px;
+    }
+    .channel {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1.5px solid #d9e4f1;
+      border-radius: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+      background: white;
+      transition: border-color .15s, background .15s;
+    }
+    .channel:hover { border-color: #b8cce6; }
+    .channel.active {
+      border-color: #1976e8;
+      background: #eef6ff;
+    }
+    .channel input { width: 18px; height: 18px; accent-color: #1976e8; }
+    .channel b { font-size: 15px; }
+    .channel small { display: block; color: #71809a; font-size: 12px; margin-top: 2px; }
+
+    .delay-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .delay-btn {
+      border: 1.5px solid #d9e4f1;
+      background: white;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #52617a;
+    }
+    .delay-btn.active {
+      border-color: #1976e8;
+      background: #eef6ff;
+      color: #1976e8;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      background: #f7fafc;
+      border-radius: 12px;
+    }
+    .toggle-row input { margin-top: 3px; width: 18px; height: 18px; accent-color: #1976e8; }
+    .toggle-row b { font-size: 14px; display: block; margin-bottom: 3px; }
+    .toggle-row span { font-size: 13px; color: #71809a; line-height: 1.35; }
+
+    .preview {
+      background: #f0f7ff;
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 26px;
+    }
+    .preview-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #52617a;
+      margin-bottom: 10px;
+    }
+    .preview-bubble {
+      background: white;
+      border-radius: 14px 14px 14px 4px;
+      padding: 12px 14px;
+      font-size: 14px;
+      line-height: 1.45;
+      box-shadow: 0 2px 8px #0000000a;
+      white-space: pre-wrap;
+    }
+
+    .go {
+      width: 100%;
+      height: 52px;
+      border: 0;
+      border-radius: 12px;
+      background: #1976e8;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .go:hover { filter: brightness(0.96); }
+    .back {
+      display: block;
+      width: 100%;
+      border: 0;
+      background: none;
+      color: #1976e8;
+      margin-top: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 15px;
+      text-align: center;
+    }
+
+    @media (max-width: 520px) {
+      .page {
+        margin: 0;
+        border-radius: 0;
+        min-height: 100vh;
+        padding: 22px 16px 32px;
+      }
+      h1 { font-size: 22px; }
+      .steps { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="logo">
+      <div class="logo-icon">↗</div>
+      <span>Возврат звонков</span>
+    </div>
+
+    <div class="steps">
+      <div class="step done"><b>✓</b>Регистрация</div>
+      <div class="step done"><b>✓</b>Подключение</div>
+      <div class="step active"><b>3</b>Настройка</div>
+      <div class="step"><b>4</b>Готово</div>
+    </div>
+
+    <h1>Настройка авто-ответа</h1>
+    <p class="subtitle">Укажите, что система будет писать клиенту после пропущенного звонка.</p>
+
+    <!-- Текст сообщения -->
+    <div class="block">
+      <label class="label">Текст сообщения</label>
+      <textarea id="msg">Добрий день!
+Ви щойно дзвонили нам.
+Напишіть, будь ласка, що потрібно зробити і зручний час — ми передзвонимо.</textarea>
+      <div class="hint">Можно использовать украинский или русский язык</div>
+    </div>
+
+    <!-- Каналы -->
+    <div class="block">
+      <label class="label">Куда отправлять</label>
+      <div class="channels">
+        <label class="channel active">
+          <input type="checkbox" checked id="ch-viber">
+          <div>
+            <b>Viber</b>
+            <small>Самый популярный мессенджер в Украине</small>
+          </div>
+        </label>
+        <label class="channel active">
+          <input type="checkbox" checked id="ch-telegram">
+          <div>
+            <b>Telegram</b>
+            <small>Если номер привязан к Telegram</small>
+          </div>
+        </label>
+        <label class="channel">
+          <input type="checkbox" id="ch-sms">
+          <div>
+            <b>SMS</b>
+            <small>На случай, если мессенджеры недоступны</small>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Задержка -->
+    <div class="block">
+      <label class="label">Через сколько отвечать</label>
+      <div class="delay-row">
+        <button class="delay-btn" data-sec="30">30 сек</button>
+        <button class="delay-btn active" data-sec="60">60 сек</button>
+        <button class="delay-btn" data-sec="90">90 сек</button>
+        <button class="delay-btn" data-sec="120">2 мин</button>
+      </div>
+      <div class="hint">Рекомендуем 45–70 секунд — клиент ещё не успел убрать телефон</div>
+    </div>
+
+    <!-- Умная логика -->
+    <div class="block">
+      <div class="toggle-row">
+        <input type="checkbox" id="smart" checked>
+        <div>
+          <b>Не писать, если клиент сам перезвонил</b>
+          <span>Если человек перезвонил в течение выбранного времени — сообщение не отправляется</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Превью -->
+    <div class="preview">
+      <div class="preview-title">Как будет выглядеть сообщение</div>
+      <div class="preview-bubble" id="preview">Добрий день!
+Ви щойно дзвонили нам.
+Напишіть, будь ласка, що потрібно зробити і зручний час — ми передзвонимо.</div>
+    </div>
+
+    <button class="go" id="go">Сохранить и продолжить →</button>
+    <button class="back" onclick="history.back()">← Назад</button>
+  </div>
+
+  <script>
+    // Каналы — визуальное выделение
+    document.querySelectorAll('.channel').forEach(ch => {
+      const cb = ch.querySelector('input');
+      ch.classList.toggle('active', cb.checked);
+      cb.addEventListener('change', () => {
+        ch.classList.toggle('active', cb.checked);
+      });
+    });
+
+    // Задержка
+    document.querySelectorAll('.delay-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.delay-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      };
+    });
+
+    // Живой превью
+    const msg = document.getElementById('msg');
+    const preview = document.getElementById('preview');
+    msg.addEventListener('input', () => {
+      preview.textContent = msg.value || 'Текст сообщения…';
+    });
+
+    // Сохранить
+    document.getElementById('go').onclick = () => {
+      const channels = [];
+      if (document.getElementById('ch-viber').checked) channels.push('Viber');
+      if (document.getElementById('ch-telegram').checked) channels.push('Telegram');
+      if (document.getElementById('ch-sms').checked) channels.push('SMS');
+
+      if (channels.length === 0) {
+        alert('Выберите хотя бы один канал');
+        return;
+      }
+
+      const delay = document.querySelector('.delay-btn.active').dataset.sec;
+      const smart = document.getElementById('smart').checked;
+
+      window.location.href = '/done';
+    };
+  </script>
+</body>
+</html>

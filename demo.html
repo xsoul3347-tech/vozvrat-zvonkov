@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Тест автоответчика — Возврат звонков</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f7fb;color:#17233b}
+.wrap{max-width:900px;margin:auto;padding:28px 16px 60px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.logo{font-weight:800;font-size:21px}.back{color:#1976e8;text-decoration:none;font-weight:650}
+.card{background:#fff;border:1px solid #e1e7ef;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 8px 24px #17233b0a}
+h1{margin:0 0 7px;font-size:27px}h2{margin:0 0 15px;font-size:19px}
+.muted{color:#71809a;font-size:14px}
+.form{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:18px}
+input{width:100%;border:1px solid #cfd9e6;border-radius:10px;padding:12px 13px;font-size:16px}
+button{border:0;border-radius:10px;padding:11px 16px;font-weight:750;cursor:pointer}
+.primary{background:#1976e8;color:#fff}.secondary{background:#eef4fb;color:#42617f}
+button:disabled{opacity:.55;cursor:not-allowed}
+.flow{display:grid;gap:9px}
+.step{display:flex;gap:12px;align-items:flex-start;border:1px solid #e2e8f0;border-radius:12px;padding:13px}
+.num{width:30px;height:30px;flex:none;border-radius:50%;background:#eaf3ff;color:#1976e8;display:grid;place-items:center;font-weight:800}
+.step.active{border-color:#9bc5f5;background:#f7fbff}
+.step.done .num{background:#eafaf3;color:#0d8c59}
+.status{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef3f9;color:#52617a;font-size:12px;font-weight:750}
+.status.ok{background:#eafaf3;color:#0d8c59}
+.status.wait{background:#fff5df;color:#a96600}
+.call{margin-top:16px;display:none}
+.result{display:none}
+.result-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.info{border:1px solid #e1e7ef;border-radius:12px;padding:14px}
+.label{font-size:12px;color:#71809a;margin-bottom:5px}.value{font-weight:700}
+.transcript{background:#f7f9fc;border-radius:12px;padding:13px;margin-top:12px;line-height:1.5}
+.demo-note{margin-top:12px;padding:12px;border-radius:10px;background:#fff7e8;color:#795b20;font-size:13px}
+@media(max-width:600px){.form{grid-template-columns:1fr}.result-grid{grid-template-columns:1fr}.header{align-items:flex-start;gap:10px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">☎ Возврат звонков</div>
+    <a class="back" href="vozvrat-zvonkov-v2.html">← В кабинет</a>
+  </div>
+
+  <section class="card">
+    <h1>Тест автоматического перезвона</h1>
+    <p class="muted">Сымитируем пропущенный звонок и пройдём сценарий без настоящего телефонного вызова.</p>
+
+    <div class="form">
+      <input id="phone" value="+380 67 123 45 67" placeholder="+380 __ ___ __ __">
+      <button class="primary" id="startBtn" onclick="startDemo()">Сымитировать звонок</button>
+    </div>
+    <div class="demo-note">Демо-режим: деньги за звонок не списываются, реальный клиент не вызывается.</div>
+  </section>
+
+  <section class="card">
+    <h2>Соединение с Python-сервером</h2>
+    <p class="muted" id="serverStatus">Проверяем сервер...</p>
+    <button class="secondary" onclick="checkServer()">Проверить соединение</button>
+  </section>
+
+  <section class="card">
+    <h2>Сценарий</h2>
+    <div class="flow">
+      <div class="step" id="s1"><div class="num">1</div><div><b>Пропущенный звонок</b><br><span class="muted">Номер поступил в систему</span></div><span class="status" id="st1">Ожидание</span></div>
+      <div class="step" id="s2"><div class="num">2</div><div><b>Автоматический перезвон</b><br><span class="muted">Система готовит обратный звонок</span></div><span class="status" id="st2">Ожидание</span></div>
+      <div class="step" id="s3"><div class="num">3</div><div><b>Вопрос клиенту</b><br><span class="muted">«По какому вопросу вы обращались?»</span></div><span class="status" id="st3">Ожидание</span></div>
+      <div class="step" id="s4"><div class="num">4</div><div><b>Уточнение</b><br><span class="muted">«Что именно вы хотели узнать или сделать?»</span></div><span class="status" id="st4">Ожидание</span></div>
+      <div class="step" id="s5"><div class="num">5</div><div><b>Передача владельцу</b><br><span class="muted">Информация сохранена, клиент ждёт обратного звонка</span></div><span class="status" id="st5">Ожидание</span></div>
+    </div>
+  </section>
+
+  <section class="card result" id="result">
+    <h2>Результат разговора</h2>
+    <div class="result-grid">
+      <div class="info"><div class="label">Клиент</div><div class="value" id="rPhone">—</div></div>
+      <div class="info"><div class="label">Статус</div><div class="value">🟠 Ждёт вашего звонка</div></div>
+      <div class="info"><div class="label">Причина обращения</div><div class="value">Хочет узнать стоимость услуги</div></div>
+      <div class="info"><div class="label">Что нужно клиенту</div><div class="value">Хочет подключить сервис и узнать условия</div></div>
+    </div>
+    <div class="transcript">
+      <b>Краткая расшифровка</b><br><br>
+      🤖 Система: Здравствуйте! Вы звонили нам, но мы не смогли ответить. По какому вопросу вы обращались?<br><br>
+      👤 Клиент: Хочу узнать стоимость услуги.<br><br>
+      🤖 Система: Что именно вы хотели узнать или сделать?<br><br>
+      👤 Клиент: Хочу подключить сервис и узнать условия.<br><br>
+      🤖 Система: Спасибо. Я записал информацию. Пожалуйста, ожидайте — вам перезвонят.
+    </div>
+    <button class="primary call" id="callBtn" onclick="callClient()">☎ Перезвонить клиенту</button>
+  </section>
+</div>
+
+<script>
+let currentId=null;
+const API=(location.hostname==='localhost'||location.hostname==='127.0.0.1')?'http://localhost:5000':'';
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+function setStep(n,state){
+  const step=document.getElementById('s'+n);
+  const status=document.getElementById('st'+n);
+  step.classList.toggle('active',state==='active');
+  step.classList.toggle('done',state==='done');
+  status.className='status '+(state==='done'?'ok':state==='active'?'wait':'');
+  status.textContent=state==='done'?'Готово':state==='active'?'Выполняется':'Ожидание';
+}
+
+async function checkServer(){
+  const el=document.getElementById('serverStatus');
+  try{
+    const res=await fetch(API+'/health');
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    el.textContent='🟢 Python-сервер подключён · '+data.service;
+    el.style.color='#0d8c59';
+  }catch(e){
+    el.textContent='🔴 Python-сервер недоступен. Запусти vozvrat-zvonkov-auto-reply-v1.py';
+    el.style.color='#d64545';
+  }
+}
+
+async function startDemo(){
+  const phone=document.getElementById('phone').value.trim();
+  if(!phone){alert('Введите номер клиента');return}
+  document.getElementById('startBtn').disabled=true;
+  document.getElementById('result').style.display='none';
+  for(let i=1;i<=5;i++) setStep(i,'waiting');
+
+  try{
+    setStep(1,'active');
+    const res=await fetch(API+'/webhook/missed-call',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({phone})
+    });
+    if(!res.ok) throw new Error('Сервер недоступен');
+    const data=await res.json();
+    currentId=data.call_id;
+    setStep(1,'done');
+
+    setStep(2,'active');
+    await sleep(1000);
+    const cb=await fetch(API+'/api/callback/'+currentId,{method:'POST'});
+    if(!cb.ok) throw new Error('Не удалось запустить callback');
+    await sleep(900);
+    setStep(2,'done');
+
+    setStep(3,'active');
+    await sleep(1200);
+    setStep(3,'done');
+
+    setStep(4,'active');
+    await sleep(1200);
+    setStep(4,'done');
+
+    setStep(5,'active');
+    await sleep(900);
+    setStep(5,'done');
+
+    document.getElementById('rPhone').textContent=phone;
+    document.getElementById('result').style.display='block';
+    document.getElementById('callBtn').style.display='inline-block';
+    await loadSavedCall();
+  }catch(e){
+    alert('Для теста сначала запусти Python-сервер: python vozvrat-zvonkov-auto-reply-v1.py\\n\\n'+e.message);
+    for(let i=1;i<=5;i++) setStep(i,'waiting');
+  }finally{
+    document.getElementById('startBtn').disabled=false;
+  }
+}
+
+async function loadSavedCall(){
+  if(!currentId) return;
+  const res=await fetch(API+'/api/calls/'+currentId);
+  if(!res.ok) return;
+  const call=await res.json();
+  document.getElementById('rPhone').textContent=call.phone;
+}
+
+function callClient(){
+  const phone=document.getElementById('phone').value.trim();
+  window.location.href='tel:'+phone.replace(/\\s/g,'');
+}
+checkServer();
+</script>
+</body>
+</html>
